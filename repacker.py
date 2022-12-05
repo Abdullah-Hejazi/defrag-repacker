@@ -15,6 +15,7 @@ DATATYPE = {
 }
 
 START_AT = "z00mer_run2.pk3"
+PK3_FOLDER = '/maps/missing'
 
 def init():
     global DATATYPES
@@ -23,8 +24,10 @@ def init():
     #generate_pk3()
 
 def download_data():
-    print("Downloading pk3 files")
     global START_AT
+    global PK3_FOLDER
+
+    print("Downloading pk3 files")
 
     ssh = paramiko.client.SSHClient()
     ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
@@ -38,7 +41,7 @@ def download_data():
     start = START_AT == ""
 
     with ssh.open_sftp() as sftp:
-        files = sftp.listdir(path='/maps/missing')
+        files = sftp.listdir(path=PK3_FOLDER)
         files.sort()
 
         for file in files:
