@@ -2,6 +2,7 @@ from dotenv import load_dotenv
 import paramiko
 import os
 import sys
+import shutil
 
 load_dotenv()
 
@@ -17,11 +18,20 @@ DATATYPE = {
 START_AT = "z00mer_run2.pk3"
 PK3_FOLDER = '/maps/missing'
 
+GAMETYPES = [
+    'run',
+    'teamrun',
+    'ctf',
+    'freestyle',
+    'fastcaps'
+]
+
 def init():
     global DATATYPES
     #download_data()
     separate_files()
     #generate_pk3()
+
 
 def download_data():
     global START_AT
@@ -63,7 +73,47 @@ def download_data():
 
 
 def separate_files():
+    global GAMETYPES
     maps = parse_sql()
+
+    for file in os.listdir('downloads'):
+        if file.endswith('.pk3'):
+            mapname = file.replace('.pk3', '')
+
+            if mapname in maps:
+                extract_file(file)
+                extract_data(maps[mapname])
+                log('separate', '\x1b[6;30;42m Finished \x1b[0m ' + file)
+            else:
+                log('separate', '\x1b[6;30;41m Error \x1b[0m ' + file + ' not found in export.sql')
+                print(' ')
+
+            if os.path.exists('downloads/temp'):
+                shutil.rmtree('downloads/temp')
+
+
+def extract_file(file):
+    log('separate', '\x1b[6;30;44m Extracting \x1b[0m ' + file)
+
+    os.system('unzip downloads/' + file + ' -d downloads/temp')
+
+    log('separate', '\x1b[6;30;42m Finished Extracting \x1b[0m ' + file)
+    print(' ')
+
+
+def extract_data(gametype):
+    global DATATYPE
+    global GAMETYPES
+
+    for root, subdirs, files in os.walk('downloads/temp'):
+        # print all files
+        for file in files:
+            path = os.path.join(root, file).replace('downloads/temp/', '')
+            _output = 'output/' + gametype + '/' + path
+            _input = 'downloads/temp/' + path
+
+            os.makedirs(os.path.dirname(_output), exist_ok=True)
+            shutil.copy(_input, _output)
 
 def parse_sql():
     # read files from export.sql to lines array
@@ -71,7 +121,6 @@ def parse_sql():
     with open('export.sql', 'r') as f:
         lines = f.readlines()
 
-    i = 0
     for line in lines:
         linesplit = line.split(' ')
         gametypesplit = linesplit[1:]
@@ -83,17 +132,19 @@ def parse_sql():
 
     return result
 
-    
 
 def generate_pk3():
+    global GAMETYPES
     print("generate pk3 files (sound, maps, ...etc) separate pk3")
+
 
 def log(file, msg):
     print(msg)
 
     with open('logs/' + file + '.log', 'a') as f:
-        cleared_msg = msg.replace('\x1b[6;30;42m', '').replace('\x1b[6;30;44m', '').replace('\x1b[0m', '')
+        cleared_msg = msg.replace('\x1b[6;30;42m', '').replace('\x1b[6;30;44m', '').replace('\x1b[0m', '').replace('\x1b[6;30;41m', '')
         f.write(cleared_msg + '\n')
+
 
 if __name__ == "__main__":
     init()
