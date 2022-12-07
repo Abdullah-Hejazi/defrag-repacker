@@ -108,12 +108,19 @@ def extract_data(gametype):
     for root, subdirs, files in os.walk('downloads/temp'):
         # print all files
         for file in files:
-            path = os.path.join(root, file).replace('downloads/temp/', '')
-            _output = 'output/' + gametype + '/' + path
-            _input = 'downloads/temp/' + path
+            # iterate datatype
+            for datatype in DATATYPE:
+                # iterate file extensions
+                for extension in DATATYPE[datatype]:
+                    if file.endswith('.' + extension):
+                        # check if gametype is valid
+                        if gametype in GAMETYPES:
+                            # check if folder exists
+                            if not os.path.exists('downloads/' + datatype + '/' + gametype):
+                                os.makedirs('downloads/' + datatype + '/' + gametype)
 
-            os.makedirs(os.path.dirname(_output), exist_ok=True)
-            shutil.copy(_input, _output)
+                            # move file
+                            shutil.move(os.path
 
 def parse_sql():
     # read files from export.sql to lines array
