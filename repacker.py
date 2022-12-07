@@ -20,7 +20,7 @@ PK3_FOLDER = '/maps/missing'
 def init():
     global DATATYPES
     #download_data()
-    #db_connect()
+    separate_files()
     #generate_pk3()
 
 def download_data():
@@ -62,8 +62,28 @@ def download_data():
     ssh.close()
 
 
-def db_connect():
-    print("connect to database and separate the downloaded files")
+def separate_files():
+    maps = parse_sql()
+
+def parse_sql():
+    # read files from export.sql to lines array
+    result = {}
+    with open('export.sql', 'r') as f:
+        lines = f.readlines()
+
+    i = 0
+    for line in lines:
+        linesplit = line.split(' ')
+        gametypesplit = linesplit[1:]
+
+        mapname = linesplit[0]
+        gametype = ''.join(gametypesplit).replace(' ', '').replace('\n', '')
+
+        result[mapname] = gametype
+
+    return result
+
+    
 
 def generate_pk3():
     print("generate pk3 files (sound, maps, ...etc) separate pk3")
