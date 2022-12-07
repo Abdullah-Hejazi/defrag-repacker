@@ -122,6 +122,13 @@ def extract_data(gametype):
                             # move file
                             shutil.move(os.path
 
+                            # path = os.path.join(root, file).replace('downloads/temp/', '')
+                            # _output = 'output/' + gametype + '/' + path
+                            # _input = 'downloads/temp/' + path
+
+                            # os.makedirs(os.path.dirname(_output), exist_ok=True)
+                            # shutil.copy(_input, _output)
+
 def parse_sql():
     # read files from export.sql to lines array
     result = {}
