@@ -6,17 +6,20 @@ import shutil
 
 load_dotenv()
 
-DATATYPE = {
-    'levelshots': ['jpg', 'tga', 'jpeg', 'png'],
+DATATYPES = {
     'models': ['md3', 'mdc', 'mdr', 'mds', 'mdx', 'md5mesh', 'md5anim'],
     'textures': ['tga', 'jpg', 'jpeg', 'png', 'dds', 'bmp'],
-    'scripts': ['shader', 'cfg', 'menu', 'arena', 'bot'],
+    'scripts': ['shader', 'cfg', 'menu', 'arena', 'bot', 'defi', 'shaderx'],
     'maps': ['bsp', 'arena'],
     'sound': ['wav', 'ogg', 'mp3']
 }
 
-START_AT = "z00mer_run2.pk3"
-PK3_FOLDER = '/maps/missing'
+START_AT = ""
+PK3_FOLDER = '/maps/pk3'
+
+OUTPUT_SIZE_THRESHHOLD = 0
+
+repacks_index = {}
 
 GAMETYPES = [
     'run',
@@ -28,9 +31,8 @@ GAMETYPES = [
 
 def init():
     global DATATYPES
-    #download_data()
+    download_data()
     separate_files()
-    #generate_pk3()
 
 
 def download_data():
@@ -71,9 +73,7 @@ def download_data():
     print("Finished downloading pk3 files")
     ssh.close()
 
-
 def separate_files():
-    global GAMETYPES
     maps = parse_sql()
 
     for file in os.listdir('downloads'):
@@ -84,6 +84,8 @@ def separate_files():
                 extract_file(file)
                 extract_data(maps[mapname])
                 log('separate', '\x1b[6;30;42m Finished \x1b[0m ' + file)
+
+                package_file(maps[mapname])
             else:
                 log('separate', '\x1b[6;30;41m Error \x1b[0m ' + file + ' not found in export.sql')
                 print(' ')
@@ -91,43 +93,60 @@ def separate_files():
             if os.path.exists('downloads/temp'):
                 shutil.rmtree('downloads/temp')
 
-
 def extract_file(file):
     log('separate', '\x1b[6;30;44m Extracting \x1b[0m ' + file)
 
-    os.system('unzip downloads/' + file + ' -d downloads/temp')
+    shutil.unpack_archive('downloads/' + file, 'downloads/temp', 'zip')
 
     log('separate', '\x1b[6;30;42m Finished Extracting \x1b[0m ' + file)
     print(' ')
 
+def get_file_size(start_path = '.'):
+    total_size = 0
+    for dirpath, dirnames, filenames in os.walk(start_path):
+        for f in filenames:
+            fp = os.path.join(dirpath, f)
+            # skip if it is symbolic link
+            if not os.path.islink(fp):
+                total_size += os.path.getsize(fp)
+
+    return total_size
 
 def extract_data(gametype):
-    global DATATYPE
-    global GAMETYPES
+    global DATATYPES
 
     for root, subdirs, files in os.walk('downloads/temp'):
-        # print all files
         for file in files:
-            # iterate datatype
-            for datatype in DATATYPE:
-                # iterate file extensions
-                for extension in DATATYPE[datatype]:
+            for datatype in DATATYPES:
+                for extension in DATATYPES[datatype]:
                     if file.endswith('.' + extension):
-                        # check if gametype is valid
-                        if gametype in GAMETYPES:
-                            # check if folder exists
-                            if not os.path.exists('downloads/' + datatype + '/' + gametype):
-                                os.makedirs('downloads/' + datatype + '/' + gametype)
+                        path = os.path.join(root, file).replace('downloads/temp/', '')
+                        _output = 'output/' + gametype + '/' + datatype + '/' + path
+                        _input = 'downloads/temp/' + path
 
-                            # move file
-                            shutil.move(os.path
+                        os.makedirs(os.path.dirname(_output), exist_ok=True)
+                        shutil.copy(_input, _output)
 
-                            # path = os.path.join(root, file).replace('downloads/temp/', '')
-                            # _output = 'output/' + gametype + '/' + path
-                            # _input = 'downloads/temp/' + path
+def package_file(file):
+    global OUTPUT_SIZE_THRESHHOLD
+    global repacks_index
 
-                            # os.makedirs(os.path.dirname(_output), exist_ok=True)
-                            # shutil.copy(_input, _output)
+    for folder in os.listdir('output/' + file):
+        size = get_file_size('output/' + file + '/' + folder)
+
+        if size > (OUTPUT_SIZE_THRESHHOLD * 1024 * 1024):
+            log('repack', '\x1b[6;30;44m Packaging \x1b[0m ' + file + '/' + folder)
+            if folder not in repacks_index:
+                repacks_index[folder] = 0
+
+            repacks_index[folder] += 1
+
+            zip_name = 'repack/' + file + '/' + file + '-' + folder + '-' + str(repacks_index[folder])
+            shutil.make_archive(zip_name, 'zip', 'output/' + file + '/' + folder)
+
+            shutil.rmtree('output/' + file + '/' + folder)
+
+            log('repack', '\x1b[6;30;42m Finished Packaging \x1b[0m ' + file + '/' + folder)
 
 def parse_sql():
     # read files from export.sql to lines array
@@ -145,12 +164,6 @@ def parse_sql():
         result[mapname] = gametype
 
     return result
-
-
-def generate_pk3():
-    global GAMETYPES
-    print("generate pk3 files (sound, maps, ...etc) separate pk3")
-
 
 def log(file, msg):
     print(msg)
