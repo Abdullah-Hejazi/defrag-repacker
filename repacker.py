@@ -63,7 +63,7 @@ def download_data():
             if not start:
                 continue
 
-            if file.endswith('.pk3'):
+            if file.endswith('.pk3') and file not in os.listdir('downloads'):
                 log('download', '\x1b[6;30;44m Downloading \x1b[0m ' + file)
                 sftp.get(PK3_FOLDER + file, 'downloads/' + file)
                 log('download', '\x1b[6;30;42m Finished \x1b[0m ' + file)
