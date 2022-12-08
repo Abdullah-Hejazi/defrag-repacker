@@ -15,7 +15,7 @@ DATATYPES = {
 }
 
 START_AT = ""
-PK3_FOLDER = '/maps/pk3'
+PK3_FOLDER = '/maps/pk3/'
 
 OUTPUT_SIZE_THRESHHOLD = 0
 
@@ -65,7 +65,7 @@ def download_data():
 
             if file.endswith('.pk3'):
                 log('download', '\x1b[6;30;44m Downloading \x1b[0m ' + file)
-                sftp.get('/maps/missing/' + file, 'downloads/' + file)
+                sftp.get(PK3_FOLDER + file, 'downloads/' + file)
                 log('download', '\x1b[6;30;42m Finished \x1b[0m ' + file)
                 print(' ')
 
