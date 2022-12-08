@@ -17,7 +17,7 @@ DATATYPES = {
 START_AT = ""
 PK3_FOLDER = '/maps/pk3/'
 
-OUTPUT_SIZE_THRESHHOLD = 0
+OUTPUT_SIZE_THRESHHOLD = 1.5
 
 repacks_index = {}
 
@@ -134,7 +134,7 @@ def package_file(file):
     for folder in os.listdir('output/' + file):
         size = get_file_size('output/' + file + '/' + folder)
 
-        if size > (OUTPUT_SIZE_THRESHHOLD * 1024 * 1024):
+        if size > (OUTPUT_SIZE_THRESHHOLD * 1024 * 1024 * 1024):
             log('repack', '\x1b[6;30;44m Packaging \x1b[0m ' + file + '/' + folder)
             if folder not in repacks_index:
                 repacks_index[folder] = 0
