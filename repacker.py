@@ -3,6 +3,7 @@ import paramiko
 import os
 import sys
 import shutil
+import mysql.connector
 
 load_dotenv()
 
@@ -64,9 +65,9 @@ def download_data():
                 continue
 
             if file.endswith('.pk3') and file not in os.listdir('downloads'):
-                log('download', '\x1b[6;30;44m Downloading \x1b[0m ' + file)
+                log('download', 'Downloading  ' + file)
                 sftp.get(PK3_FOLDER + file, 'downloads/' + file)
-                log('download', '\x1b[6;30;42m Finished \x1b[0m ' + file)
+                log('download', 'Finished  ' + file)
                 print(' ')
 
 
@@ -83,22 +84,22 @@ def separate_files():
             if mapname in maps:
                 extract_file(file)
                 extract_data(maps[mapname])
-                log('separate', '\x1b[6;30;42m Finished \x1b[0m ' + file)
+                log('separate', 'Finished  ' + file)
 
                 package_file(maps[mapname])
             else:
-                log('separate', '\x1b[6;30;41m Error \x1b[0m ' + file + ' not found in export.sql')
+                log('separate', 'Error  ' + file + ' not found in export.sql')
                 print(' ')
 
             if os.path.exists('downloads/temp'):
                 shutil.rmtree('downloads/temp')
 
 def extract_file(file):
-    log('separate', '\x1b[6;30;44m Extracting \x1b[0m ' + file)
+    log('separate', 'Extracting  ' + file)
 
     shutil.unpack_archive('downloads/' + file, 'downloads/temp', 'zip')
 
-    log('separate', '\x1b[6;30;42m Finished Extracting \x1b[0m ' + file)
+    log('separate', 'Finished Extracting  ' + file)
     print(' ')
 
 def get_file_size(start_path = '.'):
@@ -135,7 +136,7 @@ def package_file(file):
         size = get_file_size('output/' + file + '/' + folder)
 
         if size > (OUTPUT_SIZE_THRESHHOLD * 1024 * 1024 * 1024):
-            log('repack', '\x1b[6;30;44m Packaging \x1b[0m ' + file + '/' + folder)
+            log('repack', 'Packaging  ' + file + '/' + folder)
             if folder not in repacks_index:
                 repacks_index[folder] = 0
 
@@ -146,22 +147,26 @@ def package_file(file):
 
             shutil.rmtree('output/' + file + '/' + folder)
 
-            log('repack', '\x1b[6;30;42m Finished Packaging \x1b[0m ' + file + '/' + folder)
+            log('repack', 'Finished Packaging  ' + file + '/' + folder)
 
 def parse_sql():
-    # read files from export.sql to lines array
+    dbconnection = mysql.connector.connect(
+        host=os.getenv('DB_HOST'),
+        user=os.getenv('DB_USER'),
+        passwd=os.getenv('DB_PASS'),
+        database=os.getenv('DB_NAME')
+    )
+
+    dbcursor = dbconnection.cursor()
+
+    dbcursor.execute("SELECT name,gametype FROM defrag_racing.maps_map ORDER BY date_added_ws DESC")
+
+    dbresult = dbcursor.fetchall()
+
     result = {}
-    with open('export.sql', 'r') as f:
-        lines = f.readlines()
 
-    for line in lines:
-        linesplit = line.split(' ')
-        gametypesplit = linesplit[1:]
-
-        mapname = linesplit[0]
-        gametype = ''.join(gametypesplit).replace(' ', '').replace('\n', '')
-
-        result[mapname] = gametype
+    for row in dbresult:
+        result[row[0]] = row[1]
 
     return result
 
@@ -169,7 +174,7 @@ def log(file, msg):
     print(msg)
 
     with open('logs/' + file + '.log', 'a') as f:
-        cleared_msg = msg.replace('\x1b[6;30;42m', '').replace('\x1b[6;30;44m', '').replace('\x1b[0m', '').replace('\x1b[6;30;41m', '')
+        cleared_msg = msg
         f.write(cleared_msg + '\n')
 
 
