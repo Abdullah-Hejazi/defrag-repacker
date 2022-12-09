@@ -32,7 +32,12 @@ GAMETYPES = [
 
 def init():
     global DATATYPES
-    download_data()
+
+    if len(sys.argv) > 1 and sys.argv[1] == '--no-download':
+        print("Skipping download")
+    else:
+        download_data()
+
     separate_files()
 
 
@@ -78,7 +83,7 @@ def separate_files():
     maps = parse_sql2()
 
     for file in os.listdir('downloads'):
-        if file.endswith('.pk3') and os.path.getsize(file) > 0:
+        if file.endswith('.pk3') and os.path.getsize('downloads/' + file) > 0:
             mapname = file.replace('.pk3', '')
 
             if mapname in maps:
