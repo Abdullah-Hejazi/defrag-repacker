@@ -30,9 +30,7 @@ GAMETYPES = [
     'fastcaps'
 ]
 
-MAP_EXCEPTIONS = [
-    'inder-hades.pk3'
-]
+MAP_EXCEPTIONS = []
 
 def init():
     global DATATYPES
