@@ -121,7 +121,8 @@ def extract_data(gametype):
             for datatype in DATATYPES:
                 for extension in DATATYPES[datatype]:
                     if file.endswith('.' + extension):
-                        path = os.path.join(root, file).replace('downloads/temp/', '')
+                        path = os.path.join(root, file).replace('\\', '/').replace('downloads/temp/', '')
+
                         _output = 'output/' + gametype + '/' + datatype + '/' + path
                         _input = 'downloads/temp/' + path
 
@@ -167,6 +168,23 @@ def parse_sql():
 
     for row in dbresult:
         result[row[0]] = row[1]
+
+    return result
+
+def parse_sql2():
+    # read files from export.sql to lines array
+    result = {}
+    with open('export.sql', 'r') as f:
+        lines = f.readlines()
+
+    for line in lines:
+        linesplit = line.split(' ')
+        gametypesplit = linesplit[1:]
+
+        mapname = linesplit[0]
+        gametype = ''.join(gametypesplit).replace(' ', '').replace('\n', '')
+
+        result[mapname] = gametype
 
     return result
 
