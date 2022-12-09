@@ -30,6 +30,10 @@ GAMETYPES = [
     'fastcaps'
 ]
 
+MAP_EXCEPTIONS = [
+    'inder-hades.pk3'
+]
+
 def init():
     global DATATYPES
 
@@ -83,6 +87,9 @@ def separate_files():
     maps = parse_sql2()
 
     for file in os.listdir('downloads'):
+        if file in MAP_EXCEPTIONS:
+            continue
+
         if file.endswith('.pk3') and os.path.getsize('downloads/' + file) > 0:
             mapname = file.replace('.pk3', '')
 
@@ -103,7 +110,7 @@ def extract_file(file):
     log('separate', 'Extracting  ' + file)
 
     shutil.unpack_archive('downloads/' + file, 'downloads/temp', 'zip')
-
+    
     log('separate', 'Finished Extracting  ' + file)
     print(' ')
 
