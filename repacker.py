@@ -75,7 +75,7 @@ def download_data():
     ssh.close()
 
 def separate_files():
-    maps = parse_sql()
+    maps = parse_sql2()
 
     for file in os.listdir('downloads'):
         if file.endswith('.pk3'):
