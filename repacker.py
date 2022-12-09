@@ -92,9 +92,12 @@ def separate_files():
             mapname = file.replace('.pk3', '')
 
             if mapname in maps:
-                extract_file(file)
+                if extract_file(file) == False:
+                    continue
+
                 extract_data(maps[mapname])
                 log('separate', 'Finished  ' + file)
+                print(' ')
 
                 package_file(maps[mapname])
             else:
@@ -107,10 +110,15 @@ def separate_files():
 def extract_file(file):
     log('separate', 'Extracting  ' + file)
 
-    shutil.unpack_archive('downloads/' + file, 'downloads/temp', 'zip')
-    
+    try:
+        shutil.unpack_archive('downloads/' + file, 'downloads/temp', 'zip')
+    except:
+        log('separate', 'Error  with unpacking ' + file)
+        print(' ')
+        return False
+
     log('separate', 'Finished Extracting  ' + file)
-    print(' ')
+    return True
 
 def get_file_size(start_path = '.'):
     total_size = 0
