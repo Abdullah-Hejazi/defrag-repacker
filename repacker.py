@@ -78,7 +78,7 @@ def separate_files():
     maps = parse_sql2()
 
     for file in os.listdir('downloads'):
-        if file.endswith('.pk3'):
+        if file.endswith('.pk3') and os.path.getsize(file) > 0:
             mapname = file.replace('.pk3', '')
 
             if mapname in maps:
