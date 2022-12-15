@@ -18,13 +18,21 @@ DATATYPES = {
 START_AT = ""
 PK3_FOLDER = '/maps/pk3/'
 
-OUTPUT_SIZE_THRESHHOLD = 1.5
+OUTPUT_SIZE_THRESHHOLD = 3
+
+FILE_DATABASE = {
+    'models': [],
+    'textures': [],
+    'scripts': [],
+    'maps': [],
+    'sound': []
+}
 
 repacks_index = {}
 
 GAMETYPES = [
     'run',
-    'teamrun',
+    'team',
     'ctf',
     'freestyle',
     'fastcaps'
@@ -107,6 +115,10 @@ def separate_files():
             if os.path.exists('downloads/temp'):
                 shutil.rmtree('downloads/temp')
 
+    for gametype in GAMETYPES:
+        package_file(gametype, True)
+
+
 def extract_file(file):
     log('separate', 'Extracting  ' + file)
 
@@ -138,8 +150,13 @@ def extract_data(gametype):
         for file in files:
             for datatype in DATATYPES:
                 for extension in DATATYPES[datatype]:
-                    if file.endswith('.' + extension):
+                    if file.endswith('.' + extension) and file not in FILE_DATABASE[datatype]:
                         path = os.path.join(root, file).replace('\\', '/').replace('downloads/temp/', '')
+
+                        FILE_DATABASE[datatype].append(path)
+
+                        with open('stores/' + datatype + '.txt', 'a') as f:
+                            f.write(path + '\n')
 
                         _output = 'output/' + gametype + '/' + datatype + '/' + path
                         _input = 'downloads/temp/' + path
@@ -147,14 +164,17 @@ def extract_data(gametype):
                         os.makedirs(os.path.dirname(_output), exist_ok=True)
                         shutil.copy(_input, _output)
 
-def package_file(file):
+def package_file(file, finalRound=False):
     global OUTPUT_SIZE_THRESHHOLD
     global repacks_index
+
+    if not os.path.exists('output/' + file):
+        return
 
     for folder in os.listdir('output/' + file):
         size = get_file_size('output/' + file + '/' + folder)
 
-        if size > (OUTPUT_SIZE_THRESHHOLD * 1024 * 1024 * 1024):
+        if finalRound or size > (OUTPUT_SIZE_THRESHHOLD * 1024 * 1024 * 1024):
             log('repack', 'Packaging  ' + file + '/' + folder)
             if folder not in repacks_index:
                 repacks_index[folder] = 0
