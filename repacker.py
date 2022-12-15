@@ -52,11 +52,11 @@ def init():
 
     for datatype in DATATYPES:
         if os.path.exists('stores/' + datatype + '.txt'):
-            with open('stores/' + datatype + '.txt', 'r') as f:
+            with open('stores/' + datatype + '.txt', 'r', encoding="utf-8") as f:
                 FILE_DATABASE[datatype] = f.read().splitlines()
 
     if os.path.exists('stores/finished.txt'):
-        with open('stores/finished.txt', 'r') as f:
+        with open('stores/finished.txt', 'r', encoding="utf-8") as f:
             FINISHED_FILES = f.read().splitlines()
 
     separate_files()
@@ -110,24 +110,30 @@ def separate_files():
         if file.endswith('.pk3') and os.path.getsize('downloads/' + file) > 0:
             mapname = file.replace('.pk3', '')
 
+            if extract_file(file) == False:
+                continue
+
             if mapname in maps:
-                if extract_file(file) == False:
-                    continue
-
                 extract_data(maps[mapname])
-                log('separate', 'Finished  ' + file)
-                print(' ')
 
+            else:
+                extract_data('pack')
+
+            log('separate', 'Finished  ' + file)
+            print(' ')
+
+            if mapname in maps:
                 package_file(maps[mapname])
             else:
-                log('separate', 'Error  ' + file + ' not found in export.sql')
-                print(' ')
+                package_file('pack')
 
             if os.path.exists('downloads/temp'):
                 shutil.rmtree('downloads/temp')
 
     for gametype in GAMETYPES:
         package_file(gametype, True)
+
+    package_file('pack', True)
 
 
 def extract_file(file):
@@ -139,8 +145,8 @@ def extract_file(file):
         return False
 
     FINISHED_FILES.append(file)
-    # write FINISHED_FILES to file
-    with open('stores/finished.txt', 'a') as f:
+
+    with open('stores/finished.txt', 'a', encoding="utf-8") as f:
         f.write(file + '\n')
 
 
@@ -177,7 +183,7 @@ def extract_data(gametype):
 
                         FILE_DATABASE[datatype].append(path)
 
-                        with open('stores/' + datatype + '.txt', 'a') as f:
+                        with open('stores/' + datatype + '.txt', 'a', encoding="utf-8") as f:
                             f.write(path + '\n')
 
                         _output = 'output/' + gametype + '/' + datatype + '/' + path
@@ -185,6 +191,10 @@ def extract_data(gametype):
 
                         os.makedirs(os.path.dirname(_output), exist_ok=True)
                         shutil.copy(_input, _output)
+
+                    elif not file.endswith('.' + extension):
+                        with open('stores/failed.txt', 'a', encoding="utf-8") as f:
+                            f.write(file + '\n')
 
 def package_file(file, finalRound=False):
     global OUTPUT_SIZE_THRESHHOLD
@@ -251,7 +261,7 @@ def parse_sql2():
 def log(file, msg):
     print(msg)
 
-    with open('logs/' + file + '.log', 'a') as f:
+    with open('logs/' + file + '.log', 'a', encoding="utf-8") as f:
         cleared_msg = msg
         f.write(cleared_msg + '\n')
 
