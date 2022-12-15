@@ -40,6 +40,8 @@ GAMETYPES = [
 
 MAP_EXCEPTIONS = []
 
+FINISHED_FILES = []
+
 def init():
     global DATATYPES
 
@@ -47,6 +49,15 @@ def init():
         print("Skipping download")
     else:
         download_data()
+
+    for datatype in DATATYPES:
+        if os.path.exists('stores/' + datatype + '.txt'):
+            with open('stores/' + datatype + '.txt', 'r') as f:
+                FILE_DATABASE[datatype] = f.read().splitlines()
+
+    if os.path.exists('stores/finished.txt'):
+        with open('stores/finished.txt', 'r') as f:
+            FINISHED_FILES = f.read().splitlines()
 
     separate_files()
 
@@ -121,6 +132,17 @@ def separate_files():
 
 def extract_file(file):
     log('separate', 'Extracting  ' + file)
+
+    if file in FINISHED_FILES:
+        log('separate', 'File already extracted  ' + file)
+        print(' ')
+        return False
+
+    FINISHED_FILES.append(file)
+    # write FINISHED_FILES to file
+    with open('stores/finished.txt', 'a') as f:
+        f.write(file + '\n')
+
 
     try:
         shutil.unpack_archive('downloads/' + file, 'downloads/temp', 'zip')
