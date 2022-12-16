@@ -8,11 +8,11 @@ import mysql.connector
 load_dotenv()
 
 DATATYPES = {
-    'models': ['md3', 'mdc', 'mdr', 'mds', 'mdx', 'md5mesh', 'md5anim'],
-    'textures': ['tga', 'jpg', 'jpeg', 'png', 'dds', 'bmp'],
-    'scripts': ['shader', 'cfg', 'menu', 'arena', 'bot', 'defi', 'shaderx'],
-    'maps': ['bsp', 'arena'],
-    'sound': ['wav', 'ogg', 'mp3']
+    'models': ['.md3', '.mdc', '.mdr', '.mds', '.mdx', '.md5mesh', '.md5anim'],
+    'textures': ['.tga', '.jpg', '.jpeg', '.png', '.dds', '.bmp'],
+    'scripts': ['.shader', '.cfg', '.menu', '.arena', '.bot', '.defi', '.shaderx'],
+    'maps': ['.bsp', '.arena'],
+    'sound': ['.wav', '.ogg', '.mp3']
 }
 
 START_AT = ""
@@ -101,23 +101,22 @@ def download_data():
     ssh.close()
 
 def separate_files():
-    maps = parse_sql2()
+    maps = parse_sql3()
 
     for file in os.listdir('downloads'):
         if file in MAP_EXCEPTIONS:
             continue
 
         if file.endswith('.pk3') and os.path.getsize('downloads/' + file) > 0:
-            mapname = file.replace('.pk3', '')
+            if search_db(maps, 'pk3_file', file):
+                log('separate', 'File exists in the database: ' + file)
+            else:
+                continue
 
             if extract_file(file) == False:
                 continue
 
-            if mapname in maps:
-                extract_data(maps[mapname])
-
-            else:
-                extract_data('pack')
+            extract_data(search_db(maps, 'pk3_file', file)['gametype'])
 
             log('separate', 'Finished  ' + file)
             print(' ')
@@ -132,8 +131,6 @@ def separate_files():
 
     for gametype in GAMETYPES:
         package_file(gametype, True)
-
-    package_file('pack', True)
 
 
 def extract_file(file):
@@ -177,24 +174,23 @@ def extract_data(gametype):
     for root, subdirs, files in os.walk('downloads/temp'):
         for file in files:
             for datatype in DATATYPES:
-                for extension in DATATYPES[datatype]:
-                    if file.endswith('.' + extension) and file not in FILE_DATABASE[datatype]:
-                        path = os.path.join(root, file).replace('\\', '/').replace('downloads/temp/', '')
+                if file.endswith(tuple(DATATYPES[datatype])) and file not in FILE_DATABASE[datatype]:
+                    path = os.path.join(root, file).replace('\\', '/').replace('downloads/temp/', '')
 
-                        FILE_DATABASE[datatype].append(path)
+                    FILE_DATABASE[datatype].append(path)
 
-                        with open('stores/' + datatype + '.txt', 'a', encoding="utf-8") as f:
-                            f.write(path + '\n')
+                    with open('stores/' + datatype + '.txt', 'a', encoding="utf-8") as f:
+                        f.write(path + '\n')
 
-                        _output = 'output/' + gametype + '/' + datatype + '/' + path
-                        _input = 'downloads/temp/' + path
+                    _output = 'output/' + gametype + '/' + datatype + '/' + path
+                    _input = 'downloads/temp/' + path
 
-                        os.makedirs(os.path.dirname(_output), exist_ok=True)
-                        shutil.copy(_input, _output)
+                    os.makedirs(os.path.dirname(_output), exist_ok=True)
+                    shutil.copy(_input, _output)
 
-                    elif not file.endswith('.' + extension):
-                        with open('stores/failed.txt', 'a', encoding="utf-8") as f:
-                            f.write(file + '\n')
+                elif not file.endswith(tuple(DATATYPES[datatype])):
+                    with open('stores/failed.txt', 'a', encoding="utf-8") as f:
+                        f.write(file + '\n')
 
 def package_file(file, finalRound=False):
     global OUTPUT_SIZE_THRESHHOLD
@@ -206,7 +202,7 @@ def package_file(file, finalRound=False):
     for folder in os.listdir('output/' + file):
         size = get_file_size('output/' + file + '/' + folder)
 
-        if finalRound or size > (OUTPUT_SIZE_THRESHHOLD * 1024 * 1024 * 1024):
+        if finalRound == True or size > (OUTPUT_SIZE_THRESHHOLD * 1024 * 1024 * 1024):
             log('repack', 'Packaging  ' + file + '/' + folder)
             if folder not in repacks_index:
                 repacks_index[folder] = 0
@@ -258,6 +254,31 @@ def parse_sql2():
 
     return result
 
+def parse_sql3():
+    result = []
+    with open('file3.sql', 'r') as f:
+        lines = f.readlines()
+
+    for line in lines:
+        row = line.split('|')
+
+        result.append({
+            'mapname': row[1].strip(),
+            'gametype': row[4].strip(),
+            'pk3_file': row[2].strip().split('/')[-1],
+            'pk3_file_size': int(row[3].strip()),
+            'release_date': row[5].strip()
+        })
+
+    return result
+
+def search_db(db, key, value):
+    for row in db:
+        if row[key] == value:
+            return row
+
+    return False
+
 def log(file, msg):
     print(msg)
 
@@ -268,3 +289,4 @@ def log(file, msg):
 
 if __name__ == "__main__":
     init()
+    print(r[0])
