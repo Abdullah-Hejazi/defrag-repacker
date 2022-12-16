@@ -121,10 +121,7 @@ def separate_files():
             log('separate', 'Finished  ' + file)
             print(' ')
 
-            if mapname in maps:
-                package_file(maps[mapname])
-            else:
-                package_file('pack')
+            package_file(search_db(maps, 'pk3_file', file)['gametype'])
 
             if os.path.exists('downloads/temp'):
                 shutil.rmtree('downloads/temp')
