@@ -35,7 +35,8 @@ GAMETYPES = [
     'team',
     'ctf',
     'freestyle',
-    'fastcaps'
+    'fastcaps',
+    'unknown'
 ]
 
 MAP_EXCEPTIONS = []
@@ -286,4 +287,3 @@ def log(file, msg):
 
 if __name__ == "__main__":
     init()
-    print(r[0])
