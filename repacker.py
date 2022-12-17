@@ -230,6 +230,27 @@ def package_file(file, finalRound=False):
 
             log('repack', 'Finished Packaging  ' + file + '/' + folder)
 
+def parse_sql():
+    dbconnection = mysql.connector.connect(
+        host=os.getenv('DB_HOST'),
+        user=os.getenv('DB_USER'),
+        passwd=os.getenv('DB_PASS'),
+        database=os.getenv('DB_NAME')
+    )
+
+    dbcursor = dbconnection.cursor()
+
+    dbcursor.execute("SELECT name,gametype FROM defrag_racing.maps_map ORDER BY date_added_ws DESC")
+
+    dbresult = dbcursor.fetchall()
+
+    result = {}
+
+    for row in dbresult:
+        result[row[0]] = row[1]
+
+    return result
+
 def parse_sql3():
     result = []
     with open('file3.sql', 'r') as f:
