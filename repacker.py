@@ -20,7 +20,7 @@ DATATYPES = {
 START_AT = ""
 PK3_FOLDER = '/maps/pk3/'
 
-OUTPUT_SIZE_THRESHHOLD = 3
+OUTPUT_SIZE_THRESHHOLD = 1.5
 
 FILE_DATABASE = {
     'models': [],
@@ -65,7 +65,6 @@ def init():
             repacks_index = json.load(f)
 
     separate_files()
-
 
 def download_data():
     global START_AT
@@ -128,7 +127,6 @@ def separate_files():
             if os.path.exists('downloads/temp'):
                 shutil.rmtree('downloads/temp')
 
-
 def extract_file(file):
     log('separate', 'Extracting  ' + file)
 
@@ -173,7 +171,7 @@ def extract_data(gametype):
                 if file.endswith(tuple(DATATYPES[datatype])) and file not in FILE_DATABASE[datatype]:
                     path = os.path.join(root, file).replace('\\', '/').replace('downloads/temp/', '')
 
-                    FILE_DATABASE[datatype].append(path)
+                    FILE_DATABASE[datatype].append(file)
 
                     with open('stores/' + datatype + '.txt', 'a', encoding="utf-8") as f:
                         f.write(path + '\n')
@@ -192,7 +190,7 @@ def repack(gametype, datatype, path):
         repacks_index[gametype + '-' + datatype] = 1
         save_index()
 
-    zipname = 'repack/' + gametype + '-' + datatype + '-' + str(repack_index) + '.zip'
+    zipname = 'repack/' + gametype + '-' + datatype + '-' + str(repack_index) + '.pk3'
     append_zip(zipname, 'downloads/temp/' + path)
 
     if os.path.getsize(zipname) > (OUTPUT_SIZE_THRESHHOLD * 1024 * 1024 * 1024):
