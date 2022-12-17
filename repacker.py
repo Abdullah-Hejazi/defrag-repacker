@@ -40,8 +40,6 @@ GAMETYPES = [
     'unknown'
 ]
 
-MAP_EXCEPTIONS = []
-
 FINISHED_FILES = []
 
 def init():
@@ -60,6 +58,10 @@ def init():
     if os.path.exists('stores/finished.txt'):
         with open('stores/finished.txt', 'r', encoding="utf-8") as f:
             FINISHED_FILES = f.read().splitlines()
+
+    if os.path.exists('stores/repacks_index.txt'):
+        with open('stores/repacks_index.txt', 'r', encoding="utf-8") as f:
+            repacks_index = json.load(f)
 
     separate_files()
 
@@ -106,16 +108,15 @@ def separate_files():
     maps = parse_sql3()
 
     for file in os.listdir('downloads'):
-        if file in MAP_EXCEPTIONS:
-            continue
-
         if file.endswith('.pk3') and os.path.getsize('downloads/' + file) > 0:
-            if search_db(maps, 'pk3_file', file):
-                log('separate', 'File exists in the database: ' + file)
-            else:
+            if not search_db(maps, 'pk3_file', file):
+                log('separate', 'File doesnt exist in the database (skipping): ' + file)
                 continue
 
             if extract_file(file) == False:
+                if os.path.exists('downloads/temp'):
+                    shutil.rmtree('downloads/temp')
+
                 continue
 
             extract_data(search_db(maps, 'pk3_file', file)['gametype'])
@@ -181,15 +182,29 @@ def extract_data(gametype):
                     with open('stores/' + datatype + '.txt', 'a', encoding="utf-8") as f:
                         f.write(path + '\n')
 
-                    _output = 'output/' + gametype + '/' + datatype + '/' + path
-                    _input = 'downloads/temp/' + path
-
-                    os.makedirs(os.path.dirname(_output), exist_ok=True)
-                    shutil.copy(_input, _output)
+                    repack(gametype, datatype, path)
 
                 elif not file.endswith(tuple(DATATYPES[datatype])):
                     with open('stores/failed.txt', 'a', encoding="utf-8") as f:
                         f.write(file + '\n')
+
+def repack(gametype, datatype, path):
+    repack_index = 1
+    if gametype + '-' + datatype in repacks_index:
+        repack_index = repacks_index[gametype + '-' + datatype]
+    else:
+        repacks_index[gametype + '-' + datatype] = 1
+        save_index()
+
+    zipname = 'repack/' + gametype + '-' + datatype + '-' + str(repack_index) + '.zip'
+    append_zip(zipname, 'downloads/temp/' + path)
+
+    # check zipname file size
+    if os.path.getsize(zipname) > (OUTPUT_SIZE_THRESHHOLD * 1024 * 1024 * 1024):
+        repack_index += 1
+        repacks_index[gametype + '-' + datatype] = repack_index
+        save_index()
+
 
 def package_file(file, finalRound=False):
     global OUTPUT_SIZE_THRESHHOLD
@@ -214,44 +229,6 @@ def package_file(file, finalRound=False):
             shutil.rmtree('output/' + file + '/' + folder)
 
             log('repack', 'Finished Packaging  ' + file + '/' + folder)
-
-def parse_sql():
-    dbconnection = mysql.connector.connect(
-        host=os.getenv('DB_HOST'),
-        user=os.getenv('DB_USER'),
-        passwd=os.getenv('DB_PASS'),
-        database=os.getenv('DB_NAME')
-    )
-
-    dbcursor = dbconnection.cursor()
-
-    dbcursor.execute("SELECT name,gametype FROM defrag_racing.maps_map ORDER BY date_added_ws DESC")
-
-    dbresult = dbcursor.fetchall()
-
-    result = {}
-
-    for row in dbresult:
-        result[row[0]] = row[1]
-
-    return result
-
-def parse_sql2():
-    # read files from export.sql to lines array
-    result = {}
-    with open('export.sql', 'r') as f:
-        lines = f.readlines()
-
-    for line in lines:
-        linesplit = line.split(' ')
-        gametypesplit = linesplit[1:]
-
-        mapname = linesplit[0]
-        gametype = ''.join(gametypesplit).replace(' ', '').replace('\n', '')
-
-        result[mapname] = gametype
-
-    return result
 
 def parse_sql3():
     result = []
@@ -285,10 +262,13 @@ def log(file, msg):
         cleared_msg = msg
         f.write(cleared_msg + '\n')
 
+def save_index():
+    with open('stores/repacks_index.json', 'w') as f:
+        json.dump(repacks_index, f)
+
 def append_zip(zip_name, file):
     with zipfile.ZipFile(zip_name, 'a', zipfile.ZIP_DEFLATED) as zip:
-        zip.write(file)
+        zip.write(file, file.replace('downloads/temp', ''))
 
 if __name__ == "__main__":
     init()
-    #append_zip('test.zip', 'output/run/maps/maps/hgb-shitmap2.bsp')
