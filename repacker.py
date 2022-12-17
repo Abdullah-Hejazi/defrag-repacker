@@ -4,6 +4,7 @@ import os
 import sys
 import shutil
 import mysql.connector
+import zipfile
 
 load_dotenv()
 
@@ -284,6 +285,10 @@ def log(file, msg):
         cleared_msg = msg
         f.write(cleared_msg + '\n')
 
+def append_zip(zip_name, file):
+    with zipfile.ZipFile(zip_name, 'a', zipfile.ZIP_DEFLATED) as zip:
+        zip.write(file)
 
 if __name__ == "__main__":
     init()
+    #append_zip('test.zip', 'output/run/maps/maps/hgb-shitmap2.bsp')
