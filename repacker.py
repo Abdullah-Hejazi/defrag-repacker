@@ -200,31 +200,6 @@ def repack(gametype, datatype, path):
         repacks_index[gametype + '-' + datatype] = repack_index
         save_index()
 
-
-def package_file(file, finalRound=False):
-    global OUTPUT_SIZE_THRESHHOLD
-    global repacks_index
-
-    if not os.path.exists('output/' + file):
-        return
-
-    for folder in os.listdir('output/' + file):
-        size = get_file_size('output/' + file + '/' + folder)
-
-        if finalRound == True or size > (OUTPUT_SIZE_THRESHHOLD * 1024 * 1024 * 1024):
-            log('repack', 'Packaging  ' + file + '/' + folder)
-            if folder not in repacks_index:
-                repacks_index[folder] = 0
-
-            repacks_index[folder] += 1
-
-            zip_name = 'repack/' + file + '/' + file + '-' + folder + '-' + str(repacks_index[folder])
-            shutil.make_archive(zip_name, 'zip', 'output/' + file + '/' + folder)
-
-            shutil.rmtree('output/' + file + '/' + folder)
-
-            log('repack', 'Finished Packaging  ' + file + '/' + folder)
-
 def parse_sql():
     dbconnection = mysql.connector.connect(
         host=os.getenv('DB_HOST'),
@@ -283,6 +258,11 @@ def save_index():
         json.dump(repacks_index, f)
 
 def append_zip(zip_name, file):
+    if not os.path.exists(zip_name):
+        with zipfile.ZipFile(zip_name, 'w', zipfile.ZIP_DEFLATED) as zip:
+            zip.write(file, file.replace('downloads/temp', ''))
+            return
+
     with zipfile.ZipFile(zip_name, 'a', zipfile.ZIP_DEFLATED) as zip:
         zip.write(file, file.replace('downloads/temp', ''))
 
