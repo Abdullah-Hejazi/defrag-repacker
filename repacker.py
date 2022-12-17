@@ -124,13 +124,8 @@ def separate_files():
             log('separate', 'Finished  ' + file)
             print(' ')
 
-            package_file(search_db(maps, 'pk3_file', file)['gametype'])
-
             if os.path.exists('downloads/temp'):
                 shutil.rmtree('downloads/temp')
-
-    for gametype in GAMETYPES:
-        package_file(gametype, True)
 
 
 def extract_file(file):
@@ -199,7 +194,6 @@ def repack(gametype, datatype, path):
     zipname = 'repack/' + gametype + '-' + datatype + '-' + str(repack_index) + '.zip'
     append_zip(zipname, 'downloads/temp/' + path)
 
-    # check zipname file size
     if os.path.getsize(zipname) > (OUTPUT_SIZE_THRESHHOLD * 1024 * 1024 * 1024):
         repack_index += 1
         repacks_index[gametype + '-' + datatype] = repack_index
