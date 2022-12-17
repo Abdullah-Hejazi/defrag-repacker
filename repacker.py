@@ -5,6 +5,7 @@ import sys
 import shutil
 import mysql.connector
 import zipfile
+import json
 
 load_dotenv()
 
@@ -59,8 +60,8 @@ def init():
         with open('stores/finished.txt', 'r', encoding="utf-8") as f:
             FINISHED_FILES = f.read().splitlines()
 
-    if os.path.exists('stores/repacks_index.txt'):
-        with open('stores/repacks_index.txt', 'r', encoding="utf-8") as f:
+    if os.path.exists('stores/repacks_index.json'):
+        with open('stores/repacks_index.json', 'r', encoding="utf-8") as f:
             repacks_index = json.load(f)
 
     separate_files()
