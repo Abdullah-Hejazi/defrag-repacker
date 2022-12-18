@@ -229,11 +229,11 @@ def extract_data(gametype):
 
     for root, subdirs, files in os.walk('downloads/temp'):
         for file in files:
+            path = os.path.join(root, file).replace('\\', '/').replace('downloads/temp/', '')
             for datatype in DATATYPES:
-                if file.endswith(tuple(DATATYPES[datatype])) and file not in FILE_DATABASE[gametype][datatype]:
-                    path = os.path.join(root, file).replace('\\', '/').replace('downloads/temp/', '')
+                if file.endswith(tuple(DATATYPES[datatype])) and path not in FILE_DATABASE[gametype][datatype]:
 
-                    FILE_DATABASE[gametype][datatype].append(file)
+                    FILE_DATABASE[gametype][datatype].append(path)
 
                     with open('stores/database.json', 'w', encoding="utf-8") as f:
                         json.dump(FILE_DATABASE, f)
