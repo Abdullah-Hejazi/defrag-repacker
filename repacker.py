@@ -45,6 +45,9 @@ FINISHED_FILES = []
 
 def init():
     global DATATYPES
+    global FINISHED_FILES
+    global FILE_DATABASE
+    global repacks_index
 
     if len(sys.argv) > 1 and sys.argv[1] == '--no-download':
         print("Skipping download")
@@ -138,12 +141,12 @@ def separate_files():
                 shutil.rmtree('downloads/temp')
 
 def extract_file(file):
-    log('separate', 'Extracting  ' + file)
-
     if file in FINISHED_FILES:
-        log('separate', 'File already extracted  ' + file)
+        log('separate', 'File already extracted (skipping)  ' + file)
         print(' ')
         return False
+
+    log('separate', 'Extracting  ' + file)
 
     FINISHED_FILES.append(file)
 
