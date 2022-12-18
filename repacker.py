@@ -23,11 +23,48 @@ PK3_FOLDER = '/maps/pk3/'
 OUTPUT_SIZE_THRESHHOLD = 1.5
 
 FILE_DATABASE = {
-    'models': [],
-    'textures': [],
-    'scripts': [],
-    'maps': [],
-    'sound': []
+    'run': {
+        'models': [],
+        'textures': [],
+        'scripts': [],
+        'maps': [],
+        'sound': []
+    },
+    'team': {
+        'models': [],
+        'textures': [],
+        'scripts': [],
+        'maps': [],
+        'sound': []
+    },
+    'ctf': {
+        'models': [],
+        'textures': [],
+        'scripts': [],
+        'maps': [],
+        'sound': []
+    },
+    'freestyle': {
+        'models': [],
+        'textures': [],
+        'scripts': [],
+        'maps': [],
+        'sound': []
+    },
+    'fastcaps': {
+        'models': [],
+        'textures': [],
+        'scripts': [],
+        'maps': [],
+        'sound': []
+    },
+    'unknown': {
+        'models': [],
+        'textures': [],
+        'scripts': [],
+        'maps': [],
+        'sound': []
+    }
 }
 
 repacks_index = {}
@@ -55,9 +92,9 @@ def init():
         download_data()
 
     for datatype in DATATYPES:
-        if os.path.exists('stores/' + datatype + '.txt'):
-            with open('stores/' + datatype + '.txt', 'r', encoding="utf-8") as f:
-                FILE_DATABASE[datatype] = f.read().splitlines()
+        if os.path.exists('stores/database.json'):
+            with open('stores/database.json', 'r', encoding="utf-8") as f:
+                FILE_DATABASE = json.load(f)
 
     if os.path.exists('stores/finished.txt'):
         with open('stores/finished.txt', 'r', encoding="utf-8") as f:
@@ -69,11 +106,6 @@ def init():
 
     print("Starting Point:")
     print("Finished Files: " + str(len(FINISHED_FILES)))
-    print("Finished Textures: " + str(len(FILE_DATABASE['textures'])))
-    print("Finished Models: " + str(len(FILE_DATABASE['models'])))
-    print("Finished Scripts: " + str(len(FILE_DATABASE['scripts'])))
-    print("Finished Maps: " + str(len(FILE_DATABASE['maps'])))
-    print("Finished Sound: " + str(len(FILE_DATABASE['sound'])))
 
     print("\n\n")
 
@@ -198,10 +230,13 @@ def extract_data(gametype):
     for root, subdirs, files in os.walk('downloads/temp'):
         for file in files:
             for datatype in DATATYPES:
-                if file.endswith(tuple(DATATYPES[datatype])) and file not in FILE_DATABASE[datatype]:
+                if file.endswith(tuple(DATATYPES[datatype])) and file not in FILE_DATABASE[gametype][datatype]:
                     path = os.path.join(root, file).replace('\\', '/').replace('downloads/temp/', '')
 
-                    FILE_DATABASE[datatype].append(file)
+                    FILE_DATABASE[gametype][datatype].append(file)
+
+                    with open('stores/database.json', 'w', encoding="utf-8") as f:
+                        json.dump(FILE_DATABASE, f)
 
                     with open('stores/' + datatype + '.txt', 'a', encoding="utf-8") as f:
                         f.write(path + '\n')
