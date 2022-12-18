@@ -1,3 +1,5 @@
 .env
 output
 repack
+stores/*.json
+stores/*.txt
