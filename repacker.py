@@ -271,8 +271,4 @@ def append_zip(zip_name, file):
         zip.write(file, file.replace('downloads/temp', ''))
 
 if __name__ == "__main__":
-    #init()
-
-    if os.path.exists('stores/finished.txt'):
-        with open('stores/finished.txt', 'r', encoding="utf-8") as f:
-            FINISHED_FILES = f.read().splitlines()
+    init()
