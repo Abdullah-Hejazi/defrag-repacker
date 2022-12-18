@@ -64,6 +64,16 @@ def init():
         with open('stores/repacks_index.json', 'r', encoding="utf-8") as f:
             repacks_index = json.load(f)
 
+    print("Starting Point:")
+    print("Finished Files: " + str(len(FINISHED_FILES)))
+    print("Finished Textures: " + str(len(FILE_DATABASE['textures'])))
+    print("Finished Models: " + str(len(FILE_DATABASE['models'])))
+    print("Finished Scripts: " + str(len(FILE_DATABASE['scripts'])))
+    print("Finished Maps: " + str(len(FILE_DATABASE['maps'])))
+    print("Finished Sound: " + str(len(FILE_DATABASE['sound'])))
+
+    print("\n\n")
+
     separate_files()
 
 def download_data():
@@ -178,10 +188,6 @@ def extract_data(gametype):
 
                     repack(gametype, datatype, path)
 
-                elif not file.endswith(tuple(DATATYPES[datatype])):
-                    with open('stores/failed.txt', 'a', encoding="utf-8") as f:
-                        f.write(file + '\n')
-
 def repack(gametype, datatype, path):
     repack_index = 1
     if gametype + '-' + datatype in repacks_index:
@@ -265,4 +271,8 @@ def append_zip(zip_name, file):
         zip.write(file, file.replace('downloads/temp', ''))
 
 if __name__ == "__main__":
-    init()
+    #init()
+
+    if os.path.exists('stores/finished.txt'):
+        with open('stores/finished.txt', 'r', encoding="utf-8") as f:
+            FINISHED_FILES = f.read().splitlines()
