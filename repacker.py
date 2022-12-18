@@ -82,6 +82,10 @@ def init():
 def download_data():
     global START_AT
     global PK3_FOLDER
+    global DATATYPES
+    global FINISHED_FILES
+    global FILE_DATABASE
+    global repacks_index
 
     print("Downloading pk3 files")
 
@@ -118,6 +122,11 @@ def download_data():
     ssh.close()
 
 def separate_files():
+    global DATATYPES
+    global FINISHED_FILES
+    global FILE_DATABASE
+    global repacks_index
+
     maps = parse_sql3()
 
     for file in os.listdir('downloads'):
@@ -141,6 +150,11 @@ def separate_files():
                 shutil.rmtree('downloads/temp')
 
 def extract_file(file):
+    global DATATYPES
+    global FINISHED_FILES
+    global FILE_DATABASE
+    global repacks_index
+
     if file in FINISHED_FILES:
         log('separate', 'File already extracted (skipping)  ' + file)
         print(' ')
@@ -177,6 +191,9 @@ def get_file_size(start_path = '.'):
 
 def extract_data(gametype):
     global DATATYPES
+    global FINISHED_FILES
+    global FILE_DATABASE
+    global repacks_index
 
     for root, subdirs, files in os.walk('downloads/temp'):
         for file in files:
@@ -192,6 +209,11 @@ def extract_data(gametype):
                     repack(gametype, datatype, path)
 
 def repack(gametype, datatype, path):
+    global DATATYPES
+    global FINISHED_FILES
+    global FILE_DATABASE
+    global repacks_index
+
     repack_index = 1
     if gametype + '-' + datatype in repacks_index:
         repack_index = repacks_index[gametype + '-' + datatype]
