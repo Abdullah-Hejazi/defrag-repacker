@@ -44,6 +44,6 @@ if __name__ == "__main__":
         for subdir, dirs, files in os.walk('repack-safe/safe-textures'):
             for file in files:
                 filePath = os.path.join(subdir, file)
-                zip.write(filePath, filePath.replace('\\', '').replace('repack-safe/safe-textures/', ''))
+                zip.write(filePath, filePath.replace('\\', '/').replace('repack-safe/safe-textures/', ''))
 
     shutil.rmtree('repack-safe')
